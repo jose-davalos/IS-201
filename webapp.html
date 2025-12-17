@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio - Web App</title>
+  <link rel="stylesheet" href="scratch.css" />
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+</head>
+
+<body>
+  <!-- NAV (same style as scratch.html) -->
+  <div class="nav">
+    <a href="index.html">Home</a>
+    <a href="resume.html">Resume</a>
+    <a href="scratch.html">Scratch Page</a>
+  </div>
+
+  <div class="card">
+    <h1>Live Currency Converter</h1>
+    <p>I was about to go to Mexico for the first time when this site was released, so I decided to have Chat and me making this web app to convert currencies between us dollars(USD), mexican peso(MXN), peruvian soles(PEN), and euros(EUR). <br><br>Tries live rates first, falls back to cached rates if needed.</p>
+    <p id="status" style="font-size:16px; opacity:0.9;"><b>Status:</b> Loading…</p>
+  </div>
+
+  <div class="card">
+    <h2>Convert</h2>
+
+    <p style="margin-bottom:8px;"><b>Amount</b></p>
+    <p style="margin-top:0;">
+      <input id="amount" type="number" min="0" step="0.01" value="100"
+        style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; width:min(420px, 90%);" />
+    </p>
+
+    <p style="margin-bottom:8px;"><b>From</b></p>
+    <p style="margin-top:0;">
+      <select id="fromCur" style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; width:min(420px, 90%);">
+        <option value="USD" selected>USD</option>
+        <option value="MXN">MXN</option>
+        <option value="PEN">PEN</option>
+        <option value="EUR">EUR</option>
+      </select>
+    </p>
+
+    <p style="margin-bottom:8px;"><b>To</b></p>
+    <p style="margin-top:0;">
+      <select id="toCur" style="padding:10px 12px; border-radius:10px; border:1px solid #ccc; width:min(420px, 90%);">
+        <option value="USD">USD</option>
+        <option value="MXN" selected>MXN</option>
+        <option value="PEN">PEN</option>
+        <option value="EUR">EUR</option>
+      </select>
+    </p>
+
+    <p>
+      <button id="convertBtn" style="padding:12px 18px; border-radius:10px; border:none; cursor:pointer;">Convert</button>
+      <button id="swapBtn" style="padding:12px 18px; border-radius:10px; border:none; cursor:pointer; margin-left:8px;">Swap</button>
+      <button id="refreshBtn" style="padding:12px 18px; border-radius:10px; border:none; cursor:pointer; margin-left:8px;">Update Rates</button>
+    </p>
+
+    <p id="result" style="font-size:22px; font-weight:700;">—</p>
+    <p id="meta" style="font-size:14px; opacity:0.85;">—</p>
+  </div>
+
+  <div class="footer">
+    <p>© Jose Davalos Alvarado — IS 201 WebDev Project</p>
+  </div>
+
+  <script>
+    // ===== Rates logic =====
+    // Cached fallback rates (base USD). Not "real-time", just for reliability.
+    const fallbackRates = { USD: 1, MXN: 17.2, PEN: 3.75, EUR: 0.93 };
+
+    // Live rates will overwrite this when available
+    let rates = null;
+    let rateSource = "loading";
+
+    const statusEl = document.getElementById("status");
+    const amountEl = document.getElementById("amount");
+    const fromEl = document.getElementById("fromCur");
+    const toEl = document.getElementById("toCur");
+    const resultEl = document.getElementById("result");
+    const metaEl = document.getElementById("meta");
+
+    const convertBtn = document.getElementById("convertBtn");
+    const swapBtn = document.getElementById("swapBtn");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    function setStatus(msg) {
+      statusEl.innerHTML = "<b>Status:</b> " + msg;
+    }
+
+    function formatMoney(x, cur) {
+      if (!isFinite(x)) return "—";
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: cur }).format(x);
+    }
+
+    // Convert between any currencies using USD as base:
+    // amount / rate[from] * rate[to]
+    function convert(amount, from, to) {
+      const r = rates || fallbackRates;
+      if (!r[from] || !r[to]) return null;
+      return (amount / r[from]) * r[to];
+    }
+
+    async function fetchLiveRates() {
+      // API call: base USD, only currencies we need.
+      // If it fails (CORS/network), we fall back to cached rates.
+      const url = "https://api.exchangerate.host/latest?base=USD&symbols=USD,MXN,EUR,PEN";
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Network error");
+      const data = await res.json();
+      if (!data || !data.rates) throw new Error("Bad response");
+      return data.rates;
+    }
+
+    async function loadRates() {
+      setStatus("Loading live rates…");
+      try {
+        const live = await fetchLiveRates();
+        rates = live;
+        rateSource = "live (API)";
+        setStatus("Live rates loaded ✅");
+      } catch (e) {
+        rates = null; // ensure we use fallback
+        rateSource = "cached fallback";
+        setStatus("Live rates failed — using cached fallback ✅");
+      }
+    }
+
+    function doConvert() {
+      const amount = parseFloat(amountEl.value);
+      const from = fromEl.value;
+      const to = toEl.value;
+
+      if (!isFinite(amount) || amount < 0) {
+        resultEl.textContent = "Enter a valid amount.";
+        metaEl.textContent = "";
+        return;
+      }
+
+      const out = convert(amount, from, to);
+      if (out === null) {
+        resultEl.textContent = "Conversion not available.";
+        metaEl.textContent = "";
+        return;
+      }
+
+      resultEl.textContent = `${formatMoney(amount, from)} → ${formatMoney(out, to)}`;
+      metaEl.textContent = `Source: ${rateSource}. Formula: amount ÷ rate(${from}) × rate(${to}). Base = USD.`;
+    }
+
+    swapBtn.addEventListener("click", () => {
+      const tmp = fromEl.value;
+      fromEl.value = toEl.value;
+      toEl.value = tmp;
+      doConvert();
+    });
+
+    convertBtn.addEventListener("click", doConvert);
+    refreshBtn.addEventListener("click", async () => {
+      await loadRates();
+      doConvert();
+    });
+
+    // Auto-load rates on page open (best on GitHub Pages, not file://)
+    (async () => {
+      await loadRates();
+      doConvert();
+    })();
+  </script>
+</body>
+</html>

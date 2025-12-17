@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif; 
+  color: #111; 
+  background: linear-gradient(180deg, #410985, #e036ca); 
+}
+
+h1{
+    text-align: center;
+    font-size: 50px;
+    color: #410985; 
+}
+
+h2{
+    text-align: center;
+    font: 30px;
+    color: #410985;
+}
+
+p{
+    text-align: center;
+    font-size: 20px;
+}
+
+.nav {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.85);
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.nav a {
+  margin-right: 12px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.card {
+  max-width: 900px;
+  margin: 18px auto;
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.hero-img {
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+.video-wrap {
+  position: relative;
+  padding-top: 56.25%;
+}
+
+.video-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.tableau-placeholder {
+  padding: 18px;
+  border: 2px dashed #aaa;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.footer {
+  text-align: center;
+  color: #fbfbfb;
+  padding: 18px;
+  opacity: 100;
+}
+
